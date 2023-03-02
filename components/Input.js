@@ -11,7 +11,8 @@ import colors from '../constants/colors'
 const Input = props => {
 
     const onChangeText = text=>{
-    props.onInputChanged('someId', text)
+    props.onInputChanged(props.id, text)
+    // console.log(props.id, text);
     }
 
     return (
@@ -24,7 +25,9 @@ const Input = props => {
                         size={props.iconSize || 20}
                         style={styles.icon} />
                 }
-                <TextInput style={styles.input} 
+                <TextInput 
+                {...props}
+                style={styles.input} 
                 onChangeText={onChangeText}
                 />
             </View>
