@@ -10,6 +10,7 @@ export const getFirebaseApp = ()=>{
 const firebaseConfig = {
     apiKey: "AIzaSyDUbhI5zpXmOYW07Ff6i-a1UpHj9rMCQoA",
     authDomain: "whatsapp-17418.firebaseapp.com",
+    databaseURL: "https://whatsapp-17418-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "whatsapp-17418",
     storageBucket: "whatsapp-17418.appspot.com",
     messagingSenderId: "264393209307",
