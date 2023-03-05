@@ -14,6 +14,7 @@ const StartUpScreen = () => {
     useEffect(() => {
         const tryLogin = async () => {
             const storeAuthInfo = await AsyncStorage.getItem('userData')
+            console.log('storeAuthInfo',storeAuthInfo)
             if (!storeAuthInfo) {
                 console.log('no storage found');
                 dispatch(setDidTryAutoLogin())
@@ -29,7 +30,7 @@ const StartUpScreen = () => {
                 return
             }
             const userData =await getUserData(userId)
-            dispatch(authenticate({ token: token, userData }))
+            dispatch(authenticate({ token, userData }))
         }
         tryLogin()
     }, [])

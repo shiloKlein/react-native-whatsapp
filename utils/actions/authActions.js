@@ -1,7 +1,7 @@
 import { getFirebaseApp } from '../firebaseHelper'
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth'
 import { child, getDatabase, ref, set } from 'firebase/database'
-import { AsyncStorage } from '@react-native-async-storage/async-storage'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { authenticate } from '../../store/authSlice'
 
