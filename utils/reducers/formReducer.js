@@ -1,6 +1,5 @@
 export const reducer = (state, action) => {
     const { validationResult, inputId, inputValue } = action
-    console.log(validationResult);
 
     const updatedValues = {
         ...state.inputValues,

@@ -31,7 +31,7 @@ const initialState = {
 
 const SignUpForm = props => {
 
-const dispatch = useDispatch()
+    const dispatch = useDispatch()
 
     const [error, setError] = useState()
     const [isLoading, setIsLoading] = useState(false)
@@ -48,7 +48,7 @@ const dispatch = useDispatch()
         }
     }, [error])
 
-    const authHandler = async () => {
+    const authHandler = useCallback(async () => {
         try {
             setIsLoading(true)
             const action = signUp(
@@ -57,14 +57,13 @@ const dispatch = useDispatch()
                 formState.inputValues.email,
                 formState.inputValues.password
             )
-           dispatch(action) 
             setError(null)
+            await dispatch(action)
         } catch (err) {
-            // console.log(err.message);
             setError(err.message)
             setIsLoading(false)
         }
-    }
+    }, [dispatch, formState])
 
     return (
         <>
@@ -103,16 +102,16 @@ const dispatch = useDispatch()
                 onInputChanged={inputChangeHandler}
             />
 
-        {
-        isLoading?
-        <ActivityIndicator size={'small'} color={colors.primary} style={{marginTop:10}}/>:
-        <SubmitButton
-            disabled={!formState.formIsValid}
-            title='Sign up'
-            onPress={authHandler}
-            style={{ marginTop: 20 }}
-        />
-        }
+            {
+                isLoading ?
+                    <ActivityIndicator size={'small'} color={colors.primary} style={{ marginTop: 10 }} /> :
+                    <SubmitButton
+                        disabled={!formState.formIsValid}
+                        title='Sign up'
+                        onPress={authHandler}
+                        style={{ marginTop: 20 }}
+                    />
+            }
         </>
 
     )

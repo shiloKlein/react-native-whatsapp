@@ -7,6 +7,9 @@ import * as Font from 'expo-font';
 import AppNavigator from './navigation/AppNavigator';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// AsyncStorage.clear()
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,7 +37,7 @@ export default function App() {
         });
       }
       catch (error) {
-        console.log.error();
+        // console.log.error();
       }
       finally {
         setAppIsLoaded(true);

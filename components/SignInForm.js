@@ -1,4 +1,4 @@
-import react, { useCallback, useReducer } from "react";
+import react, { useCallback, useEffect, useReducer, useState } from "react";
 import { Feather } from '@expo/vector-icons';
 
 
@@ -7,19 +7,32 @@ import SubmitButton from '../components/SubmitButton';
 import { validateInput } from "../utils/actions/formActions";
 import { reducer } from "../utils/reducers/formReducer";
 import { signIn } from "../utils/actions/authActions";
+import { Alert } from "react-native";
+import { useDispatch } from "react-redux";
+import { ActivityIndicator } from "react-native";
+import colors from "../constants/colors";
+
+const isTestMode = true
+
+const initialState = {
+    inputValues: {
+        email: isTestMode ? 'a@a.com' : a,
+        password: isTestMode ? 'aaaaaa' : '',
+    },
+    inputValidities: {
+        // TODO: change the values of email passwoer and formisvalid to false. this is just for testing, the usernamt password obove too.
+        email: isTestMode,
+        password: isTestMode,
+    },
+    formIsValid: isTestMode
+}
+
 const SignInForm = props => {
 
-    const initialState = {
-        inputValues:{
-            email: '',
-            password: '',
-        },
-        inputValidities: {
-            email: false,
-            password: false,
-        },
-        formIsValid: false
-    }
+    const [error, setError] = useState()
+    const [isLoading, setIsLoading] = useState(false)
+    const dispatch = useDispatch()
+
     const [formState, dispatchFormState] = useReducer(reducer, initialState)
 
 
@@ -28,12 +41,28 @@ const SignInForm = props => {
         dispatchFormState({ inputId, validationResult: result, inputValue })
     }, [dispatchFormState])
 
-    const authHandler = ()=>{
-        signIn(
-            formState.inputValues.email,
-            formState.inputValues.password
+
+    useEffect(() => {
+        if (error) {
+            Alert.alert('An error accured', error)
+        }
+    }, [error])
+
+    const authHandler = useCallback(async () => {
+        try {
+            setIsLoading(true)
+            const action = signIn(
+                formState.inputValues.email,
+                formState.inputValues.password
             )
-    }
+            setError(null)
+            await dispatch(action)
+        } catch (err) {
+            setError(err.message)
+            setIsLoading(false)
+        }
+    }, [dispatch, formState])
+
     return (
         <>
 
@@ -45,6 +74,7 @@ const SignInForm = props => {
                 autoCapitalize='none'
                 errorText={formState.inputValidities.email}
                 onInputChanged={inputChangeHandler}
+                value={formState.inputValues.email}
 
             />
             <Input
@@ -56,15 +86,19 @@ const SignInForm = props => {
                 secureTextEntry
                 errorText={formState.inputValidities.password}
                 onInputChanged={inputChangeHandler}
+                value={formState.inputValues.password}
+
 
             />
 
-            <SubmitButton
-                disabled={!formState.formIsValid}
-                title='Sign in'
-                onPress={authHandler}
-                style={{ marginTop: 20 }}
-            />
+            {isLoading ?
+                <ActivityIndicator size={'small'} color={colors.primary} style={{ marginTop: 10 }} /> :
+                <SubmitButton
+                    disabled={!formState.formIsValid}
+                    title='Sign in'
+                    onPress={authHandler}
+                    style={{ marginTop: 20 }}
+                />}
         </>
 
     )

@@ -9,35 +9,38 @@ import { getUserData } from "../utils/actions/userAction";
 
 const StartUpScreen = () => {
 
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const tryLogin = async () => {
-            const storeAuthInfo = await AsyncStorage.getItem('userData')
-            console.log('storeAuthInfo',storeAuthInfo)
-            if (!storeAuthInfo) {
-                console.log('no storage found');
-                dispatch(setDidTryAutoLogin())
-                return
-            }
-            
-            const parsedData = JSON.parse(storeAuthInfo)
-            const {token, userId, expiryDate:expiryDateString} = parsedData
+            const storedAuthInfo = await AsyncStorage.getItem("userData");
 
-            const expiryDate = new Date(expiryDateString)
-            if(expiryDate<= new Date()||!token||!userId){
-                dispatch(setDidTryAutoLogin)
-                return
+            if (!storedAuthInfo) {
+                dispatch(setDidTryAutoLogin());
+                return;
             }
-            const userData =await getUserData(userId)
-            dispatch(authenticate({ token, userData }))
-        }
-        tryLogin()
-    }, [])
+
+            const parsedData = JSON.parse(storedAuthInfo);
+            const { token, userId, expiryDate: expiryDateString } = parsedData;
+            console.log('parsedData',parsedData)
+
+            const expiryDate = new Date(expiryDateString);
+            if (expiryDate <= new Date() || !token || !userId) {
+                dispatch(setDidTryAutoLogin());
+                return;
+            }
+            const userData = await getUserData(userId)
+            console.log('userDataaaaa',userData)
+
+            dispatch(authenticate({ token: token, userData:userData }));
+        };
+
+        tryLogin();
+    }, [dispatch]);
 
     return <View style={commonStyles.center}>
-        <ActivityIndicator size='large' color={colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
     </View>
 }
 
-export default StartUpScreen
+export default StartUpScreen;
