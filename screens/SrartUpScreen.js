@@ -22,7 +22,6 @@ const StartUpScreen = () => {
 
             const parsedData = JSON.parse(storedAuthInfo);
             const { token, userId, expiryDate: expiryDateString } = parsedData;
-            console.log('parsedData',parsedData)
 
             const expiryDate = new Date(expiryDateString);
             if (expiryDate <= new Date() || !token || !userId) {
@@ -30,7 +29,6 @@ const StartUpScreen = () => {
                 return;
             }
             const userData = await getUserData(userId)
-            console.log('userDataaaaa',userData)
 
             dispatch(authenticate({ token: token, userData:userData }));
         };

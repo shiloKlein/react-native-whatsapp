@@ -16,7 +16,7 @@ const isTestMode = true
 
 const initialState = {
     inputValues: {
-        email: isTestMode ? 'a@a.com' : a,
+        email: isTestMode ? 'a@a.com' : '',
         password: isTestMode ? 'aaaaaa' : '',
     },
     inputValidities: {
@@ -74,7 +74,7 @@ const SignInForm = props => {
                 autoCapitalize='none'
                 errorText={formState.inputValidities.email}
                 onInputChanged={inputChangeHandler}
-                value={formState.inputValues.email}
+                initialValue={formState.inputValues.email}
 
             />
             <Input
@@ -86,7 +86,7 @@ const SignInForm = props => {
                 secureTextEntry
                 errorText={formState.inputValidities.password}
                 onInputChanged={inputChangeHandler}
-                value={formState.inputValues.password}
+                initialValue={formState.inputValues.password}
 
 
             />

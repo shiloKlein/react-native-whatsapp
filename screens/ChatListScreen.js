@@ -1,13 +1,60 @@
-import React from 'react'
-import { Text, View, StyleSheet, Button } from 'react-native'
+import React, { useEffect } from 'react'
+import { Text, View, StyleSheet, Button, FlatList } from 'react-native'
+import { HeaderButtons, Item } from 'react-navigation-header-buttons'
+import { useSelector } from 'react-redux';
+
+
+import CustomHeaderButton from '../components/CustomHeaderButton';
+
 
 
 const ChatListScreen = props => {
+
+    const selectedUser = props.route?.params?.selectedUserId
+    const userData = useSelector(state => state.auth.userData)
+    const userChats = useSelector(state => {
+        const chatsData = state.chats.chatsData
+        console.log('chatsData', Object.values(chatsData))
+        return Object.values(chatsData)
+    })
+
+    useEffect(() => {
+        props.navigation.setOptions({
+            headerRight: () => {
+                return <HeaderButtons HeaderButtonComponent={CustomHeaderButton}>
+                    <Item
+                        title='New chat'
+                        iconName='add' //'create-outline'
+                        onPress={() => props.navigation.navigate('NewChat')}
+                    />
+                </HeaderButtons>
+            }
+        })
+    }, [])
+
+    useEffect(() => {
+        if (!selectedUser) return
+
+        const chatUsers = [selectedUser, userData.userId]
+        const navigationProps = {
+            newChatData: { users: chatUsers }
+        }
+        props.navigation.navigate('ChatScreen', navigationProps)
+    }, [props.route?.params])
+
     return (
-        <View style={styles.container}>
-            <Text>chat list component</Text>
-            <Button title='Go to Chat screen' onPress={()=>props.navigation.navigate('ChatScreen')}/>
-        </View>
+        <FlatList
+            data={userChats}
+            renderItem={(itemData) => {
+                const chatData = itemData.item
+
+                const otherUserId = chatData.users.find(uid => uid !== userData.userId)
+
+
+                return <Text>{otherUserId}</Text>
+            }}
+        />
+
     )
 }
 
@@ -22,11 +69,3 @@ const styles = StyleSheet.create({
 
 export default ChatListScreen
 
-
-
-
-// export  function ChatListScreen(props) {
-//   return (
-//     <div>ChatListScreen</div>
-//   )
-// }

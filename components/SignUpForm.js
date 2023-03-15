@@ -1,8 +1,8 @@
 import react, { useCallback, useEffect, useReducer, useState } from "react";
 import { Feather } from '@expo/vector-icons';
 
-import Input from '../components/Input'
-import SubmitButton from '../components/SubmitButton';
+import Input from './Input'
+import SubmitButton from './SubmitButton';
 import { validateInput } from "../utils/actions/formActions";
 import { reducer } from "../utils/reducers/formReducer";
 import { signUp } from "../utils/actions/authActions";

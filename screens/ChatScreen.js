@@ -1,33 +1,78 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { TextInput, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native'
 import { Text, View, StyleSheet, Button, ImageBackground } from 'react-native'
 import { Feather } from '@expo/vector-icons';
+// import { HeaderButtons, Item } from 'react-navigation-header-buttons'
 
 import bgImage from '../assets/images/chat-bg.jpg'
 import colors from '../constants/colors';
-import { KeyboardAvoidingView } from 'react-native';
-import { Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform } from 'react-native';
+import { useSelector } from 'react-redux';
+import { HeaderButtons } from 'react-navigation-header-buttons';
+import PageContainer from '../components/PageContainer';
+import Bubble from '../components/Bubble';
+import { createChat } from '../utils/actions/chatActions';
+// import CustomHeaderButton from '../components/CustomHeaderButton';
 
 const ChatScreen = props => {
 
-    const [messageText, setMessageText] = useState('')
-    console.log('messageText', messageText)
+    const userData = useSelector(state => state.auth.userData)
+    const storedUsers = useSelector(state => state.users.storedUsers)
 
-    const sendMessage = useCallback(() => {
+    const [chatUsers, setChatUsers] = useState([])
+    const [messageText, setMessageText] = useState('')
+    const [chatId, setChatId] = useState(props.route?.params.chatId)
+
+    const chatData = props?.route?.params?.newChatData
+    // console.log('props.route.params', props.route.params)
+    // console.log('chatData', chatData)
+
+    const getChatTitleFromName = () => {
+        // console.log('chatUsers', chatUsers)
+        const otherUserId = chatUsers.find(uid => uid !== userData.userId)
+        const otherUserData = storedUsers[otherUserId]
+        return otherUserData && `${otherUserData.firstName} ${otherUserData.lastName}`
+    }
+
+    useEffect(() => {
+        props.navigation.setOptions({
+            headerTitle: getChatTitleFromName()
+        })
+        setChatUsers(chatData.users)
+    }, [chatUsers])
+
+    const sendMessage = useCallback(async () => {
+        try {
+            let id = chatId
+            if (!id) {
+                // no chat id create chat
+                id = await createChat(userData.userId, props.route.params.newChatData)
+                setChatId(id)
+            }
+        } catch (err) {
+            console.log('error in sendMessage function in chatScreen component', err)
+        }
         setMessageText('')
-    }, [messageText])
+    }, [messageText, chatId])
+
     return (
         <SafeAreaView
             edges={['right', 'left', 'bottom']}
             style={styles.container}>
-            <KeyboardAvoidingView 
-            style={styles.screen}
-            behavior={Platform.OS==='ios'?'padding': undefined}
-            keyboardVerticalOffset={100}
+            <KeyboardAvoidingView
+                style={styles.screen}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={100}
             >
 
                 <ImageBackground source={bgImage} style={styles.backgroundImage}>
+
+                    <PageContainer style={{ backgroundColor: 'transparent' }}>
+                        {
+                            !chatId && <Bubble text={'This is a new chat say hi'} type='system' />
+                        }
+                    </PageContainer>
 
                 </ImageBackground>
 
@@ -71,10 +116,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column'
-        
+
     },
-    screen:{
-        flex:1,
+    screen: {
+        flex: 1,
     },
     backgroundImage: {
         flex: 1
