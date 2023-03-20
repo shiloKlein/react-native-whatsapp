@@ -15,7 +15,7 @@ import { setStoredUsers } from '../store/userSlice';
 
 const NewChatScreen = props => {
 
-const dispatch = useDispatch()
+    const dispatch = useDispatch()
 
     const [isLoading, setIsLloading] = useState(false)
     const [users, setUsers] = useState()
@@ -23,6 +23,7 @@ const dispatch = useDispatch()
     const [searchTerm, setNoSearchTerm] = useState('')
 
     const userData = useSelector(state => state.auth.userData)
+    const userChats = useSelector(state => state.chats.chatsData)
 
 
     useEffect(() => {
@@ -52,10 +53,10 @@ const dispatch = useDispatch()
             setUsers(usersResult)
 
             if (Object.keys(usersResult).length === 0) setNoResultFound(true)
-            else{
-            setNoResultFound(false)
-            dispatch(setStoredUsers({newUsers:usersResult}))
-            } 
+            else {
+                setNoResultFound(false)
+                dispatch(setStoredUsers({ newUsers: usersResult }))
+            }
 
 
             setIsLloading(false)
@@ -66,9 +67,15 @@ const dispatch = useDispatch()
 
 
     const userPressed = userId => {
-        props.navigation.navigate('ChatList', {
-            selectedUserId: userId
-        })
+        console.log('userChats',userChats)
+        console.log('batata');
+        if (userChats.userId) {
+            // props.navigation.navigate('ChatScreen', {chatId})
+        } else {
+            props.navigation.navigate('ChatList', {
+                selectedUserId: userId
+            })
+        }
     }
     return (
         <PageContainer>
@@ -101,7 +108,7 @@ const dispatch = useDispatch()
                             title={`${userData.firstName} ${userData.lastName}`}
                             subtitle={userData.about}
                             image={userData.profilePicture}
-                            onPress={()=>userPressed(userId)}
+                            onPress={() => userPressed(userId)}
                         />
                     }}
                 />

@@ -12,21 +12,33 @@ import { useSelector } from 'react-redux';
 import { HeaderButtons } from 'react-navigation-header-buttons';
 import PageContainer from '../components/PageContainer';
 import Bubble from '../components/Bubble';
-import { createChat } from '../utils/actions/chatActions';
+import { createChat, sendTextMessage } from '../utils/actions/chatActions';
+import { FlatList } from 'react-native-gesture-handler';
 // import CustomHeaderButton from '../components/CustomHeaderButton';
 
-const ChatScreen = props => {
+const ChatScreen = (props) => {
+    const [chatUsers, setChatUsers] = useState([]);
+    const [messageText, setMessageText] = useState("");
+    const [chatId, setChatId] = useState(props.route?.params?.chatId);
+    const [errorBannerText, setErrorBannerText] = useState('');
 
-    const userData = useSelector(state => state.auth.userData)
-    const storedUsers = useSelector(state => state.users.storedUsers)
+    const userData = useSelector(state => state.auth.userData);
+    const storedUsers = useSelector(state => state.users.storedUsers);
+    const storedChats = useSelector(state => state.chats.chatsData);
+    const chatMessages = useSelector(state => {
+        if (!chatId) return []
+        const chatsMessagesData = state.messages.messagesData[chatId]
+        if (!chatsMessagesData) return []
+        const messageList = []
+        for (const key in chatsMessagesData) {
+            const message = chatsMessagesData[key]
+            messageList.push({ key, ...message })
+        }
+        return messageList
+    });
 
-    const [chatUsers, setChatUsers] = useState([])
-    const [messageText, setMessageText] = useState('')
-    const [chatId, setChatId] = useState(props.route?.params.chatId)
 
-    const chatData = props?.route?.params?.newChatData
-    // console.log('props.route.params', props.route.params)
-    // console.log('chatData', chatData)
+    const chatData = (chatId && storedChats[chatId]) || props.route?.params?.newChatData;
 
     const getChatTitleFromName = () => {
         // console.log('chatUsers', chatUsers)
@@ -50,10 +62,13 @@ const ChatScreen = props => {
                 id = await createChat(userData.userId, props.route.params.newChatData)
                 setChatId(id)
             }
+            await sendTextMessage(chatId, userData.userId, messageText)
+            setMessageText('')
         } catch (err) {
             console.log('error in sendMessage function in chatScreen component', err)
+            setErrorBannerText('Message failed to send')
+            setTimeout(() => setErrorBannerText(''), 5000);
         }
-        setMessageText('')
     }, [messageText, chatId])
 
     return (
@@ -71,6 +86,32 @@ const ChatScreen = props => {
                     <PageContainer style={{ backgroundColor: 'transparent' }}>
                         {
                             !chatId && <Bubble text={'This is a new chat say hi'} type='system' />
+                        }
+
+                        {
+                            errorBannerText && <Bubble text={errorBannerText} type={'error'} />
+                        }
+                        {
+                            chatId &&
+                            <FlatList
+                                data={chatMessages}
+                                renderItem={(itemData) => {
+                                    const message = itemData.item
+                                    const isownMessage = message.sentBy === userData.userId
+
+                                    const messageType = isownMessage ? 'myMessage' : 'theirMessage'
+                                    
+                                    return <Bubble  
+                                    type={messageType} 
+                                    text={message.text}
+                                    messageId={message.key}
+                                    userId={userData.userId}
+                                    chatId={chatId}
+                                    date={message.sentAt}
+
+                                    />
+                                }}
+                            />
                         }
                     </PageContainer>
 

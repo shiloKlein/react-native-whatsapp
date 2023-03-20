@@ -1,33 +1,126 @@
-import React from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import React, { useRef } from 'react'
+import { StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native'
+import { Menu, MenuOption, MenuOptions, MenuTrigger } from 'react-native-popup-menu'
+import * as Clipboard from 'expo-clipboard'
+import uuid from 'react-native-uuid'
 import colors from '../constants/colors'
+import { Feather, FontAwesome } from '@expo/vector-icons'
+import { starMessage } from '../utils/actions/chatActions'
+import { useSelector } from 'react-redux'
 
+function formatAmPm(dateString) {
+    const date = new Date(dateString)
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    return hours + ':' + minutes + ' ' + ampm;
+}
+
+const MenuItem = props => {
+    const Icon = props.iconPack ?? Feather
+    return <MenuOption onSelect={props.onSelect}>
+        <View style={styles.menuItemContainer}>
+            <Text style={styles.menuText}>{props.text}</Text>
+            <Icon name={props.icon} size={18} />
+        </View>
+    </MenuOption >
+}
 const Bubble = props => {
 
-    const { text,type } = props
+    const { text, type, messageId, userId, chatId, date } = props
 
-    const bubbleStyle = {...styles.container}
-    const textStyle = {...styles.text}
+    const starredMessages = useSelector(state => state.messages.starredMessages[chatId] ?? {})
+
+    const bubbleStyle = { ...styles.container }
+    const textStyle = { ...styles.text }
+    const wrapperStyle = { ...styles.wrapperStyle }
+
+    const menuRef = useRef(null)
+    const id = useRef(uuid.v4())
+
+    let Container = View
+    let isUserMessage = false
+    const dateString = formatAmPm(date)
 
     switch (type) {
         case 'system':
-            textStyle.color='#65644a'
+            textStyle.color = '#65644a'
             bubbleStyle.backgroundColor = colors.beige
             bubbleStyle.alighnItems = 'center'
             bubbleStyle.marginTop = 10
             break;
-    
+        case 'error':
+            textStyle.color = 'white'
+            bubbleStyle.backgroundColor = colors.red
+            bubbleStyle.marginTop = 10
+            break;
+        case 'myMessage':
+            wrapperStyle.justifyContent = 'flex-end'
+            bubbleStyle.backgroundColor = '#e7fed6'
+            bubbleStyle.maxWidth = '90%'
+            bubbleStyle.marginTop = 10
+            Container = TouchableWithoutFeedback
+            isUserMessage = true
+            break;
+        case 'theirMessage':
+            wrapperStyle.justifyContent = 'flex-start'
+            bubbleStyle.maxWidth = '90%'
+            Container = TouchableWithoutFeedback
+            isUserMessage = true
+
+            // bubbleStyle.marginTop = 10
+
+            break;
+
         default:
             break;
     }
 
+    const copyToClipboard = async text => {
+        try {
+            await Clipboard.setStringAsync(text)
+        } catch (err) {
+            console.log('error in bubble component, copy to clipboard function', err)
+        }
+    }
+    const isStarred = isUserMessage && starredMessages[messageId]
+
     return (
-        <View style={styles.wrapperStyle}>
-            <View style={bubbleStyle}>
-                <Text style={textStyle}>
-                    {text}
-                </Text>
-            </View>
+        <View style={wrapperStyle}>
+            <Container style={{ width: '100%' }} onLongPress={() => menuRef.current.props.ctx.menuActions.openMenu(id.current)}>
+                <View style={bubbleStyle}>
+                    <Text style={textStyle}>
+                        {text}
+                    </Text>
+
+                    {
+                        dateString && <View style={styles.timeContainer}>
+                            {isStarred && <FontAwesome name='star' size={14} color={colors.textColor} style={{ marginEnd: 5 }} />}
+                            <Text style={styles.time}> {dateString} </Text>
+                        </View>
+                    }
+                    <Menu name={id.current} ref={menuRef}>
+                        <MenuTrigger />
+                        <MenuOptions>
+
+                            <MenuItem text='Copy to clipboard'
+                                icon='copy'
+                                onSelect={() => copyToClipboard(text)} />
+
+                            <MenuItem text={`${isStarred ? 'Unstar' : 'Star'}`}
+                                icon={`${isStarred ? 'star' : 'star-o'}`}
+                                iconPack={FontAwesome}
+                                onSelect={() => starMessage(messageId, chatId, userId)} />
+
+                        </MenuOptions>
+
+                    </Menu>
+
+                </View>
+            </Container>
         </View>
     )
 }
@@ -49,6 +142,28 @@ const styles = StyleSheet.create({
         fontFamily: 'regular',
         letterSpacing: 0.4,
     },
+    menuItemContainer: {
+        flexDirection: 'row',
+        padding: 5,
+    },
+    menuText: {
+        flex: 1,
+        fontFamily: 'regular',
+        letterSpacing: 0.4,
+        fontSize: 16,
+    },
+    timeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+    },
+    time:{
+    fontStyle:'regular',
+    letterSpacing:0.4,
+    color:colors.grey,
+    fontSize:12,
+    }
+
+
 
 })
 export default Bubble
