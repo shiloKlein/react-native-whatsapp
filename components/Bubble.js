@@ -30,9 +30,10 @@ const MenuItem = props => {
 }
 const Bubble = props => {
 
-    const { text, type, messageId, userId, chatId, date } = props
+    const { text, type, messageId, userId, chatId, date, setReply, replyingTo, name } = props
 
     const starredMessages = useSelector(state => state.messages.starredMessages[chatId] ?? {})
+    const storedUsers = useSelector(state => state.users.storedUsers)
 
     const bubbleStyle = { ...styles.container }
     const textStyle = { ...styles.text }
@@ -43,7 +44,7 @@ const Bubble = props => {
 
     let Container = View
     let isUserMessage = false
-    const dateString = formatAmPm(date)
+    const dateString = date && formatAmPm(date)
 
     switch (type) {
         case 'system':
@@ -70,9 +71,9 @@ const Bubble = props => {
             bubbleStyle.maxWidth = '90%'
             Container = TouchableWithoutFeedback
             isUserMessage = true
-
-            // bubbleStyle.marginTop = 10
-
+            break;
+        case 'reply':
+            bubbleStyle.backgroundColor = '#f2f2f2'
             break;
 
         default:
@@ -87,11 +88,25 @@ const Bubble = props => {
         }
     }
     const isStarred = isUserMessage && starredMessages[messageId]
-
+    const replyingToUser = replyingTo && storedUsers[replyingTo.sentBy]
+    console.log(replyingTo);
     return (
         <View style={wrapperStyle}>
             <Container style={{ width: '100%' }} onLongPress={() => menuRef.current.props.ctx.menuActions.openMenu(id.current)}>
                 <View style={bubbleStyle}>
+
+                    {
+                        name &&
+                        <Text style={styles.name}>{name}</Text>
+                    }
+                    {
+                        replyingToUser && <Bubble
+                            type='reply'
+                            text={replyingTo.text}
+                            name={`${replyingToUser.firstName} ${replyingToUser.lastName}`}
+                        />
+                    }
+
                     <Text style={textStyle}>
                         {text}
                     </Text>
@@ -114,6 +129,11 @@ const Bubble = props => {
                                 icon={`${isStarred ? 'star' : 'star-o'}`}
                                 iconPack={FontAwesome}
                                 onSelect={() => starMessage(messageId, chatId, userId)} />
+
+                            <MenuItem text={`reply`}
+                                icon={`mail-reply`}
+                                iconPack={FontAwesome}
+                                onSelect={setReply} />
 
                         </MenuOptions>
 
@@ -156,11 +176,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-end',
     },
-    time:{
-    fontStyle:'regular',
-    letterSpacing:0.4,
-    color:colors.grey,
-    fontSize:12,
+    time: {
+        fontFamily: 'regular',
+        letterSpacing: 0.4,
+        color: colors.grey,
+        fontSize: 12,
+    },
+    name: {
+        fontFamily: 'medium',
+        letterSpacing: 0.4,
     }
 
 

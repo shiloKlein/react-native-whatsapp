@@ -21,7 +21,7 @@ export const createChat = async (loggedInUserId, chatData) => {
     return newChat.key
 }
 
-export const sendTextMessage = async (chatId, senderId, messageText) => {
+export const sendTextMessage = async (chatId, senderId, messageText, replyTo) => {
     const app = getFirebaseApp()
     const dbRef = ref(getDatabase(app))
     const messagesRef = child(dbRef, `messages/${chatId}`)
@@ -31,6 +31,7 @@ export const sendTextMessage = async (chatId, senderId, messageText) => {
         sentAt: new Date().toISOString(),
         text: messageText
     }
+    if (replyTo) messageData.replyTo = replyTo
 
     await push(messagesRef, messageData)
 
@@ -56,9 +57,9 @@ export const starMessage = async (messageId, chatId, userId) => {
         } else {
             // starred item does not existst - star
             const starredMessageData = {
-            messageId,
-            chatId,
-            starredAt:new Date().toISOString()
+                messageId,
+                chatId,
+                starredAt: new Date().toISOString()
             }
             await set(childRef, starredMessageData)
         }
