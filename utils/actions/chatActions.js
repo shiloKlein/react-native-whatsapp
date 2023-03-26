@@ -2,6 +2,7 @@ import { child, get, getDatabase, push, ref, remove, set, update } from "firebas
 import { getFirebaseApp } from "../firebaseHelper"
 
 export const createChat = async (loggedInUserId, chatData) => {
+    console.log('chatData',chatData)
     const newChatData = {
         ...chatData,
         createdBy: loggedInUserId,
@@ -10,18 +11,29 @@ export const createChat = async (loggedInUserId, chatData) => {
         updatedAt: new Date().toISOString()
 
     }
-    const app = getFirebaseApp()
-    const dbRef = ref(getDatabase(app))
-    const newChat = await push(child(dbRef, 'chats'), newChatData)
+    const app = getFirebaseApp();
+    const dbRef = ref(getDatabase(app));
+    const newChat = await push(child(dbRef, 'chats'), newChatData);
 
-    const chatUsers = newChatData.users
-    chatUsers.forEach(async (userId) => {
-        await push(child(dbRef, `userChats/${userId}`), newChat.key)
-    })
-    return newChat.key
+    const chatUsers = newChatData.users;
+    for (let i = 0; i < chatUsers.length; i++) {
+        const userId = chatUsers[i];
+        await push(child(dbRef, `userChats/${userId}`), newChat.key);
+    }
+
+    return newChat.key;
 }
 
 export const sendTextMessage = async (chatId, senderId, messageText, replyTo) => {
+    console.log('chatId in sendText',chatId)
+    await sendMessage(chatId, senderId, messageText, null, replyTo);
+}
+
+export const sendImage = async (chatId, senderId, imageUrl, replyTo) => {
+    await sendMessage(chatId, senderId, 'Image', imageUrl, replyTo);
+}
+
+const sendMessage = async (chatId, senderId, messageText, imageUrl, replyTo) => {
     const app = getFirebaseApp()
     const dbRef = ref(getDatabase(app))
     const messagesRef = child(dbRef, `messages/${chatId}`)
@@ -33,6 +45,9 @@ export const sendTextMessage = async (chatId, senderId, messageText, replyTo) =>
     }
     if (replyTo) messageData.replyTo = replyTo
 
+    if (imageUrl) {
+        messageData.imageUrl = imageUrl
+    }
     await push(messagesRef, messageData)
 
     const chatRef = child(dbRef, `chats/${chatId}`);

@@ -18,7 +18,8 @@ const ProfileImage = props => {
   const [image, setImage] = useState(source)
   const [isLoading, setIsLoading] = useState(false)
 
-const showEditButton = props.showEditButton&&props.showEditButton===true
+  const showEditButton = props.showEditButton && props.showEditButton === true
+  const showRemoveButton = props.showRemoveButton && props.showRemoveButton === true
 
   const userId = props.userId
 
@@ -46,9 +47,9 @@ const showEditButton = props.showEditButton&&props.showEditButton===true
     }
 
   }
-const Container = showEditButton?TouchableOpacity:View
+  const Container = props.onPress||showEditButton ? TouchableOpacity : View
   return (
-    <Container onPress={pickImage}>
+    <Container style={props.style} onPress={props.onPress || pickImage}>
       {
         isLoading ? <View height={props.size} width={props.size} style={styles.loadingContainer}>
           <ActivityIndicator size={'small'} color={colors.primary} />
@@ -58,12 +59,18 @@ const Container = showEditButton?TouchableOpacity:View
             source={image}
           />
       }
-{
-showEditButton&&!isLoading&&
-      <View style={styles.editIconContainer}>
-        <FontAwesome name="pencil" size={15} color="black" />
-      </View>
-}
+      {
+        showEditButton && !isLoading &&
+        <View style={styles.editIconContainer}>
+          <FontAwesome name="pencil" size={15} color="black" />
+        </View>
+      }
+      {
+        showRemoveButton && !isLoading &&
+        <View style={styles.removeIconContainer}>
+          <FontAwesome name="close" size={15} color="black" />
+        </View>
+      }
     </Container>
   )
 }
@@ -81,13 +88,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightGrey,
     borderRadius: 20,
     padding: 8,
-
-
   },
-  loadingContainer:{
-  justifyContent:'center',
-  alignItems:'center',
-  }
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeIconContainer:{
+    position: 'absolute',
+    bottom: -3,
+    right: -3,
+    backgroundColor: colors.lightGrey,
+    borderRadius: 20,
+    padding: 3,
+  },
 })
 
 export default ProfileImage

@@ -12,11 +12,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { getFirebaseApp } from "../utils/firebaseHelper";
 import { child, get, getDatabase, off, onValue, ref } from "firebase/database";
 import { setChatsData } from "../store/chatsSlice";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, View } from "react-native";
 import colors from "../constants/colors";
 import comonStyles from "../constants/comonStyles";
 import { setStoredUsers } from "../store/userSlice";
 import { setChatMessages, setStarredMessages } from "../store/messagesSlice";
+import { Platform } from "react-native";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -165,10 +166,10 @@ const MainNavigator = (props) => {
 
     const userStarredMessagesRef = child(dbRef, `userStarredMessages/${userData.userId}`)
     refs.push(userStarredMessagesRef)
-onValue(userStarredMessagesRef, querySnapshot=>{
-const starredMessages = querySnapshot.val()??{}
-dispatch(setStarredMessages({starredMessages}))
-})
+    onValue(userStarredMessagesRef, querySnapshot => {
+      const starredMessages = querySnapshot.val() ?? {}
+      dispatch(setStarredMessages({ starredMessages }))
+    })
 
     return () => {
       console.log("Unsubscribing firebase listeners");
@@ -184,8 +185,14 @@ dispatch(setStarredMessages({starredMessages}))
 
 
   return (
-    <StackNavigator />
-  );
+    <KeyboardAvoidingView
+      style={{flex:1}}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      // keyboardVerticalOffset={100}
+      >
+      <StackNavigator />
+      </KeyboardAvoidingView>
+      );
 };
 
-export default MainNavigator;
+      export default MainNavigator;

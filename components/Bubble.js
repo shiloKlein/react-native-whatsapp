@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native'
+import { Image, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native'
 import { Menu, MenuOption, MenuOptions, MenuTrigger } from 'react-native-popup-menu'
 import * as Clipboard from 'expo-clipboard'
 import uuid from 'react-native-uuid'
@@ -30,7 +30,7 @@ const MenuItem = props => {
 }
 const Bubble = props => {
 
-    const { text, type, messageId, userId, chatId, date, setReply, replyingTo, name } = props
+    const { text, type, messageId, userId, chatId, date, setReply, replyingTo, name, imageUrl } = props
 
     const starredMessages = useSelector(state => state.messages.starredMessages[chatId] ?? {})
     const storedUsers = useSelector(state => state.users.storedUsers)
@@ -89,7 +89,6 @@ const Bubble = props => {
     }
     const isStarred = isUserMessage && starredMessages[messageId]
     const replyingToUser = replyingTo && storedUsers[replyingTo.sentBy]
-    console.log(replyingTo);
     return (
         <View style={wrapperStyle}>
             <Container style={{ width: '100%' }} onLongPress={() => menuRef.current.props.ctx.menuActions.openMenu(id.current)}>
@@ -107,9 +106,15 @@ const Bubble = props => {
                         />
                     }
 
-                    <Text style={textStyle}>
-                        {text}
-                    </Text>
+                    {!imageUrl &&
+                        <Text style={textStyle}>
+                            {text}
+                        </Text>}
+
+                    {
+                        imageUrl &&
+                        <Image source={{ uri: imageUrl }} style={styles.image} />
+                    }
 
                     {
                         dateString && <View style={styles.timeContainer}>
@@ -185,6 +190,11 @@ const styles = StyleSheet.create({
     name: {
         fontFamily: 'medium',
         letterSpacing: 0.4,
+    },
+    image: {
+        width: 300,
+        height: 300,
+        marginBottom: 5,
     }
 
 
