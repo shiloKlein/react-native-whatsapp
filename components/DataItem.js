@@ -8,14 +8,14 @@ import colors from '../constants/colors'
 const imageSize = 40
 const DataItem = props => {
     const { title, subtitle, image, type, isChecked, icon } = props
-
+    const hideImage = props.hideImage && props.hideImage === true
     return (
         <TouchableWithoutFeedback onPress={props.onPress}>
 
             <View style={styles.container}>
                 {
-                    !icon &&
-                    <ProfileImage
+                    !icon && !hideImage &&
+                    < ProfileImage
                         uri={image}
                         size={imageSize}
                     />
@@ -30,7 +30,7 @@ const DataItem = props => {
                 <View style={styles.textContainer}>
                     <Text
                         style={{ ...styles.title, ...{ color: type === 'button' ? colors.blue : colors.textColor } }}
-                        numberOfLines={1}  
+                        numberOfLines={1}
                     >
                         {title}
                     </Text>

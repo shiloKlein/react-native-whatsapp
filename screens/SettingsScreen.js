@@ -1,4 +1,4 @@
-import React, { useCallback, useReducer, useState } from 'react'
+import React, { useCallback, useMemo, useReducer, useState } from 'react'
 import { Text, View, StyleSheet, ScrollView } from 'react-native'
 import PageTitle from '../components/pageTitle'
 import PageContainer from '../components/PageContainer'
@@ -13,6 +13,7 @@ import colors from '../constants/colors'
 import { updateSignedInUserData, userLogout } from '../utils/actions/authActions'
 import { updateLoggedInData } from '../store/authSlice'
 import ProfileImage from '../components/ProfileImage'
+import DataItem from '../components/DataItem'
 
 
 
@@ -22,6 +23,18 @@ const SettingsScreen = props => {
     const [isLoading, setIsLoading] = useState(false)
     const [showSuccessMessagge, setShowSuccessMessagge] = useState(false)
     const userData = useSelector(state => state.auth.userData)
+    const starredMessages = useSelector(state => state.messages.starredMessages ?? {})
+
+    const sortedStarredMessages = useMemo(() => {
+        let result = []
+
+        const chats = Object.values(starredMessages)
+        chats.forEach(chat => {
+            const chatMessages = Object.values(chat)
+            result = result.concat(chatMessages)
+        })
+        return result
+    }, starredMessages)
 
     const firstName = userData.firstName || ''
     const lastName = userData.lastName || ''
@@ -84,11 +97,11 @@ const SettingsScreen = props => {
         <PageTitle text="Settings" />
 
         <ScrollView contentContainerStyle={styles.formContainer}>
-            <ProfileImage 
-            size={80} 
-            userId={userData.userId}
-            uri={userData.profilePicture}
-            showEditButton={true}
+            <ProfileImage
+                size={80}
+                userId={userData.userId}
+                uri={userData.profilePicture}
+                showEditButton={true}
             />
             <Input
                 id="firstName"
@@ -140,15 +153,20 @@ const SettingsScreen = props => {
                         title='Save'
                         onPress={saveHandler}
                         style={{ marginTop: 20 }}
-                    />}
-
+                        />}
+                        </View>
+                <DataItem
+                    type={'link'}
+                    title='Starred messages'
+                    hideImage={true}
+                    onPress={() => props.navigation.navigate('DataList', { title: 'Starred messages', data: sortedStarredMessages, type: 'messages' })}
+                />
                 <SubmitButton
                     title='Logout'
                     onPress={() => dispatch(userLogout())}
                     style={{ marginTop: 20 }}
                     color={colors.red}
                 />
-            </View>
         </ScrollView>
     </PageContainer>
 };
@@ -157,8 +175,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    formContainer:{
-    alignItems:'center',
+    formContainer: {
+        alignItems: 'center',
     }
 
 })

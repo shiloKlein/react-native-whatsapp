@@ -10,11 +10,12 @@ import PageTitle from '../components/pageTitle'
 import ProfileImage from '../components/ProfileImage'
 import Input from '../components/Input'
 import { reducer } from '../utils/reducers/formReducer'
-import { removeUserFromChat, updateChatData } from '../utils/actions/chatActions'
+import { addUsersToChat, removeUserFromChat, updateChatData } from '../utils/actions/chatActions'
 import { validateInput } from '../utils/actions/formActions'
 import colors from '../constants/colors'
 import SubmitButton from '../components/SubmitButton'
 import DataItem from '../components/DataItem'
+import { useEffect } from 'react'
 
 
 const ChatSettingsScreen = props => {
@@ -23,18 +24,35 @@ const ChatSettingsScreen = props => {
     const [showSuccessMessagge, setShowSuccessMessagge] = useState(false)
 
     const chatId = props.route.params.chatId
-    const chatData = useSelector(state => state.chats.chatsData[chatId]||{})
+    const chatData = useSelector(state => state.chats.chatsData[chatId] || {})
     const userData = useSelector(state => state.auth.userData)
     const storedUsers = useSelector(state => state.users.storedUsers)
+    const starredMessages = useSelector(state => state.messages.starredMessages[chatId] ?? {})
+
 
     const initialState = {
         inputValues: { chatName: chatData.chatName },
         inputValidities: { chatName: undefined },
         formIsValid: false
     }
-
+    selectedUsers
     const [formState, dispatchFormState] = useReducer(reducer, initialState);
-    console.log(formState.formIsValid);
+
+    const selectedUsers = props.route.params && props.route.params.selectedUsers
+    useEffect(() => {
+        if (!selectedUsers) return
+
+        const selectedUsersData = []
+        selectedUsers.forEach(uid => {
+            if (uid === userData.userId) return
+            if (!storedUsers[uid]) {
+                console.log('No user data found in the data store')
+                return
+            }
+            selectedUsersData.push(storedUsers[uid])
+        })
+        addUsersToChat(userData, selectedUsersData, chatData)
+    }, [selectedUsers])
 
     const inputChangedHandler = useCallback((inputId, inputValue) => {
         const result = validateInput(inputId, inputValue);
@@ -78,7 +96,7 @@ const ChatSettingsScreen = props => {
     },
         [props.navigation, isLoading],
     )
-if(!chatData.users) return null
+    if (!chatData.users) return null
 
     return (
         <PageContainer>
@@ -107,10 +125,11 @@ if(!chatData.users) return null
                         title='Add user'
                         icon='plus'
                         type='button'
+                        onPress={() => props.navigation.navigate('NewChat', { isGroupChat: true, existingUsers: chatData.users, chatId })}
                     />
 
                     {
-                        chatData.users.map(uid => {
+                        chatData.users.slice(0, 4).map(uid => {
                             const currnetUser = storedUsers[uid]
                             return <DataItem
                                 key={uid}
@@ -121,6 +140,16 @@ if(!chatData.users) return null
                                 onPress={() => uid !== userData.userId && props.navigation.navigate('Contact', { uid, chatId })}
                             />
                         })
+                    }
+                    {/* TODO:change the condition to -- >4 -- the current is for development */}
+                    {
+                        chatData.users.length > 2 &&
+                        <DataItem
+                            type='link'
+                            title='View all'
+                            hideImage={true}
+                            onPress={() => props.navigation.navigate('DataList', { title: 'Participants', data: chatData.users, type: 'users', chatId })}
+                        />
                     }
                 </View>
 
@@ -141,7 +170,14 @@ if(!chatData.users) return null
                             disabled={!formState.formIsValid}
                         />
                 }
+                <DataItem
+                    type='link'
+                    title='Starred messages'
+                    hideImage={true}
+                    onPress={() => props.navigation.navigate('DataList', { title: 'Starred messages', data: Object.values(starredMessages), type: 'messages' })}
+                />
             </ScrollView>
+
 
             {
                 <SubmitButton
