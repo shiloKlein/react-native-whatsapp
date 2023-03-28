@@ -9,7 +9,7 @@ import bgImage from '../assets/images/chat-bg.jpg'
 import colors from '../constants/colors';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
-import { HeaderButtons } from 'react-navigation-header-buttons';
+import { HeaderButtons, Item } from 'react-navigation-header-buttons';
 import PageContainer from '../components/PageContainer';
 import Bubble from '../components/Bubble';
 import { createChat, sendImage, sendTextMessage } from '../utils/actions/chatActions';
@@ -17,6 +17,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import ReplyTo from '../components/ReplyTo';
 import { launchImagePicker, openCamera, uploadImageAsync } from '../utils/imagePickerHelper';
 import AwesomeAlert from 'react-native-awesome-alerts';
+import CustomHeaderButton from '../components/CustomHeaderButton';
 // import CustomHeaderButton from '../components/CustomHeaderButton';
 
 const ChatScreen = (props) => {
@@ -54,22 +55,37 @@ const ChatScreen = (props) => {
         return messageList;
     });
 
-    const chatData = (chatId && storedChats[chatId]) || props.route?.params?.newChatData;
+    const chatData = (chatId && storedChats[chatId]) || props.route?.params?.newChatData || {}
 
     const getChatTitleFromName = () => {
-      const otherUserId = chatUsers.find(uid => uid !== userData.userId);
-      const otherUserData = storedUsers[otherUserId];
-  
-      return otherUserData && `${otherUserData.firstName} ${otherUserData.lastName}`;
+        const otherUserId = chatUsers.find(uid => uid !== userData.userId);
+        const otherUserData = storedUsers[otherUserId];
+
+        return otherUserData && `${otherUserData.firstName} ${otherUserData.lastName}`;
     }
-  
-    const title = chatData.chatName ?? getChatTitleFromName();
-  
+
+
     useEffect(() => {
-      props.navigation.setOptions({
-        headerTitle: title
-      })
-      setChatUsers(chatData.users)
+        if (!chatData) return
+        props.navigation.setOptions({
+            headerTitle: chatData.chatName ?? getChatTitleFromName(),
+            headerRight: () => {
+                return <HeaderButtons HeaderButtonComponent={CustomHeaderButton}>
+                    {
+                        chatId && <Item
+                            title='Chat settings'
+                            iconName='settings-outline'
+                            color={colors.textColor}
+                            onPress={() => chatData.isGroupChat ?
+                                props.navigation.navigate('ChatSettings', { chatId }) :
+                                props.navigation.navigate('Contact', { uid: chatUsers.find(uid => uid !== userData.userId) })
+                            }
+                        />
+                    }
+                </HeaderButtons>
+            }
+        })
+        setChatUsers(chatData.users)
     }, [chatUsers])
 
     const sendMessage = useCallback(async () => {
@@ -163,9 +179,13 @@ const ChatScreen = (props) => {
                             data={chatMessages}
                             renderItem={(itemData) => {
                                 const message = itemData.item
-                                const isownMessage = message.sentBy === userData.userId
+                                const isOwnMessage = message.sentBy === userData.userId
 
-                                const messageType = isownMessage ? 'myMessage' : 'theirMessage'
+                                let messageType
+                                if (message.type && message.type === 'info') messageType = 'info'
+                                else if (isOwnMessage) messageType = 'myMessage'
+                                else messageType = 'theirMessage'
+
                                 const sender = message.sentBy && storedUsers[message.sentBy];
                                 const name = sender && `${sender.firstName} ${sender.lastName}`;
                                 return <Bubble
@@ -175,7 +195,7 @@ const ChatScreen = (props) => {
                                     userId={userData.userId}
                                     chatId={chatId}
                                     date={message.sentAt}
-                                    name={!chatData.isGroupChat || isownMessage ? undefined : name}
+                                    name={!chatData.isGroupChat || isOwnMessage ? undefined : name}
                                     setReply={() => setReplyingTo(message)}
                                     replyingTo={message.replyTo && chatMessages.find(m => m.key === message.replyTo)}
                                     imageUrl={message.imageUrl}

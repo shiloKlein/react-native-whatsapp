@@ -18,6 +18,7 @@ import comonStyles from "../constants/comonStyles";
 import { setStoredUsers } from "../store/userSlice";
 import { setChatMessages, setStarredMessages } from "../store/messagesSlice";
 import { Platform } from "react-native";
+import ContactScreen from "../screens/ContactScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -73,7 +74,16 @@ const StackNavigator = () => {
           name="ChatSettings"
           component={ChatSettingsScreen}
           options={{
-            headerTitle: "Settings",
+            headerTitle: "",
+            headerBackTitle: "Back",
+            headerShadowVisible:false,
+          }}
+        />
+        <Stack.Screen
+          name="Contact"
+          component={ContactScreen}
+          options={{
+            headerTitle: "Contact info",
             headerBackTitle: "Back",
           }}
         />
@@ -124,7 +134,8 @@ const MainNavigator = (props) => {
           const data = chatSnapshot.val();
 
           if (data) {
-            data.key = chatSnapshot.key;
+            if(!data.users.includes(userData.userId)) return
+            data.key = chatSnapshot.key
 
             data.users.forEach(userId => {
               if (storedUsers[userId]) return;

@@ -104,7 +104,8 @@ console.log('navigationProps',navigationProps)
                     let image = "";
 
                     if (isGroupChat) {
-                        title = chatData.chatName;  
+                        title = chatData.chatName
+                        image=chatData.chatImage
                     }
                     else {
                         const otherUserId = chatData.users.find(uid => uid !== userData.userId);
